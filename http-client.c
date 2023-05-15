@@ -1,40 +1,41 @@
 #ifdef _WIN32
 #define _WIN32_WINNT _WIN32_WINNT_WIN7
-	#include <winsock2.h> //for all socket programming
-	#include <ws2tcpip.h> //for getaddrinfo, inet_pton, inet_ntop
-	#include <stdio.h> //for fprintf, perror
-	#include <unistd.h> //for close
-	#include <stdlib.h> //for exit
-	#include <string.h> //for memset
-
-	void OSInit( void )
-	{
-		WSADATA wsaData;
-		int WSAError = WSAStartup( MAKEWORD( 2, 0 ), &wsaData );
-		if( WSAError != 0 )
-		{
-			fprintf( stderr, "WSAStartup errno = %d\n", WSAError );
-			exit( -1 );
-		}
-	}
-	void OSCleanup( void )
-	{
-		WSACleanup();
-	}
-	#define perror(string) fprintf( stderr, string ": WSA errno = %d\n", WSAGetLastError() )
-#else
-#include <sys/socket.h> //for sockaddr, socket, socket
-#include <sys/types.h> //for size_t
-#include <netdb.h> //for getaddrinfo
-#include <netinet/in.h> //for sockaddr_in
-#include <arpa/inet.h> //for htons, htonl, inet_pton, inet_ntop
-#include <errno.h> //for errno
+#include <winsock2.h> //for all socket programming
+#include <ws2tcpip.h> //for getaddrinfo, inet_pton, inet_ntop
 #include <stdio.h> //for fprintf, perror
 #include <unistd.h> //for close
 #include <stdlib.h> //for exit
 #include <string.h> //for memset
-void OSInit( void ) {}
-void OSCleanup( void ) {}
+#include <stdbool.h>
+
+void OSInit( void )
+{
+    WSADATA wsaData;
+    int WSAError = WSAStartup( MAKEWORD( 2, 0 ), &wsaData );
+    if( WSAError != 0 )
+    {
+        fprintf( stderr, "WSAStartup errno = %d\n", WSAError );
+        exit( -1 );
+    }
+}
+void OSCleanup( void )
+{
+    WSACleanup();
+}
+#define perror(string) fprintf( stderr, string ": WSA errno = %d\n", WSAGetLastError() )
+#else
+#include <sys/socket.h> //for sockaddr, socket, socket
+	#include <sys/types.h> //for size_t
+	#include <netdb.h> //for getaddrinfo
+	#include <netinet/in.h> //for sockaddr_in
+	#include <arpa/inet.h> //for htons, htonl, inet_pton, inet_ntop
+	#include <errno.h> //for errno
+	#include <stdio.h> //for fprintf, perror
+	#include <unistd.h> //for close
+	#include <stdlib.h> //for exit
+	#include <string.h> //for memset
+	void OSInit( void ) {}
+	void OSCleanup( void ) {}
 #endif
 
 int initialization();
@@ -182,13 +183,85 @@ int connection(int internet_socket) {
 }
 
 
+// Function to send an HTTP GET request
+void http_request(int internet_socket, const char *ip_address)
+{
+    char request[1000];
+    snprintf(request, sizeof(request), "GET /json/%s HTTP/1.0\r\nHost: ip-api.com\r\n\r\n", ip_address);
+
+    // Step 1: Set up destination address
+    struct addrinfo hints;
+    struct addrinfo *dest_addr;
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    int getaddrinfo_return = getaddrinfo("208.95.112.1", "80", &hints, &dest_addr);
+    if (getaddrinfo_return != 0)
+    {
+        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(getaddrinfo_return));
+        exit(1);
+    }
+
+    // Step 2: Connect to the destination address
+    int connection_return = connect(internet_socket, dest_addr->ai_addr, dest_addr->ai_addrlen);
+    if (connection_return == -1)
+    {
+        perror("connect");
+        exit(1);
+    }
+
+    freeaddrinfo(dest_addr);
+
+    // Step 3: Send the HTTP GET request
+    int number_of_bytes_send = send(internet_socket, request, strlen(request), 0);
+    if (number_of_bytes_send == -1)
+    {
+        perror("send");
+    }
+
+    // Step 4: Receive and print the response
+    char buffer[1000];
+    int number_of_bytes_received;
+    bool header_complete = false;
+
+    while (!header_complete)
+    {
+        number_of_bytes_received = recv(internet_socket, buffer, (sizeof buffer) - 1, 0);
+        if (number_of_bytes_received == -1)
+        {
+            perror("recv");
+            break;
+        }
+        else if (number_of_bytes_received == 0)
+        {
+            // Connection closed by the server
+            break;
+        }
+        else
+        {
+            buffer[number_of_bytes_received] = '\0';
+            printf("%s", buffer);
+
+            // Check if the header is complete
+            char *header_end = strstr(buffer, "\r\n\r\n");
+            if (header_end != NULL)
+            {
+                header_complete = true;
+                int body_start_index = header_end - buffer + 4;
+                printf("Response Body:\n%s\n", &buffer[body_start_index]);
+            }
+        }
+    }
+}
+
 void execution(int internet_socket)
 {
-    // Step 3.1
-    printf("Test, Test.... Does this work?! This is the execution function\n");
-    int number_of_bytes_received = 0;
+    // Step 1: Receive initial data
+    printf("Test, Test.... Does this work?!\n");
     char buffer[1000];
-    number_of_bytes_received = recv(internet_socket, buffer, (sizeof buffer) - 1, 0);
+    int number_of_bytes_received = recv(internet_socket, buffer, (sizeof buffer) - 1, 0);
     if (number_of_bytes_received == -1)
     {
         perror("recv");
@@ -199,13 +272,8 @@ void execution(int internet_socket)
         printf("Received: %s\n", buffer);
     }
 
-    // Step 3.2
-    int number_of_bytes_send = 0;
-    number_of_bytes_send = send(internet_socket, "GET /json/24.48.0.1 HTTP/1.0\r\nHost: ip-api.com\r\n\r\n", 52, 0);
-    if (number_of_bytes_send == -1)
-    {
-        perror("send");
-    }
+    // Step 2: Send HTTP GET request
+    http_request(internet_socket, ip_address);
 
     // Receive and save the response in log.txt
     FILE *log_file = fopen("log.txt", "a");
