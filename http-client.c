@@ -1,11 +1,12 @@
 #ifdef _WIN32
-	#define _WIN32_WINNT _WIN32_WINNT_WIN7
+#define _WIN32_WINNT _WIN32_WINNT_WIN7
 	#include <winsock2.h> //for all socket programming
 	#include <ws2tcpip.h> //for getaddrinfo, inet_pton, inet_ntop
 	#include <stdio.h> //for fprintf, perror
 	#include <unistd.h> //for close
 	#include <stdlib.h> //for exit
 	#include <string.h> //for memset
+
 	void OSInit( void )
 	{
 		WSADATA wsaData;
@@ -22,18 +23,18 @@
 	}
 	#define perror(string) fprintf( stderr, string ": WSA errno = %d\n", WSAGetLastError() )
 #else
-	#include <sys/socket.h> //for sockaddr, socket, socket
-	#include <sys/types.h> //for size_t
-	#include <netdb.h> //for getaddrinfo
-	#include <netinet/in.h> //for sockaddr_in
-	#include <arpa/inet.h> //for htons, htonl, inet_pton, inet_ntop
-	#include <errno.h> //for errno
-	#include <stdio.h> //for fprintf, perror
-	#include <unistd.h> //for close
-	#include <stdlib.h> //for exit
-	#include <string.h> //for memset
-	void OSInit( void ) {}
-	void OSCleanup( void ) {}
+#include <sys/socket.h> //for sockaddr, socket, socket
+#include <sys/types.h> //for size_t
+#include <netdb.h> //for getaddrinfo
+#include <netinet/in.h> //for sockaddr_in
+#include <arpa/inet.h> //for htons, htonl, inet_pton, inet_ntop
+#include <errno.h> //for errno
+#include <stdio.h> //for fprintf, perror
+#include <unistd.h> //for close
+#include <stdlib.h> //for exit
+#include <string.h> //for memset
+void OSInit( void ) {}
+void OSCleanup( void ) {}
 #endif
 
 int initialization();
@@ -43,36 +44,37 @@ void cleanup( int internet_socket, int client_internet_socket );
 
 int main( int argc, char * argv[] )
 {
-	//////////////////
-	//Initialization//
-	//////////////////
+    printf("Test, Test.... Does this work?!\n");
+    //////////////////
+    //Initialization//
+    //////////////////
 
-	OSInit();
+    OSInit();
 
-	int internet_socket = initialization();
+    int internet_socket = initialization();
 
-	//////////////
-	//Connection//
-	//////////////
+    //////////////
+    //Connection//
+    //////////////
 
-	int client_internet_socket = connection( internet_socket );
+    int client_internet_socket = connection( internet_socket );
 
-	/////////////
-	//Execution//
-	/////////////
+    /////////////
+    //Execution//
+    /////////////
 
-	execution( client_internet_socket );
+    execution( client_internet_socket );
 
 
-	////////////
-	//Clean up//
-	////////////
+    ////////////
+    //Clean up//
+    ////////////
 
-	cleanup( internet_socket, client_internet_socket );
+    cleanup( internet_socket, client_internet_socket );
 
-	OSCleanup();
+    OSCleanup();
 
-	return 0;
+    return 0;
 }
 
 int initialization()
@@ -139,6 +141,8 @@ int initialization()
     return internet_socket;
 }
 
+char ip_address[INET6_ADDRSTRLEN];
+
 int connection(int internet_socket) {
     //Step 2.1
     struct sockaddr_storage client_internet_address;
@@ -150,8 +154,7 @@ int connection(int internet_socket) {
         exit(3);
     }
 
-    // Extract IP address
-    char ip_address[INET6_ADDRSTRLEN];
+    // INET6 contains the exact length of a human-readable IPV6 adress.
     void *addr;
     if (client_internet_address.ss_family == AF_INET) {
         struct sockaddr_in *s = (struct sockaddr_in *)&client_internet_address;
@@ -160,6 +163,7 @@ int connection(int internet_socket) {
         struct sockaddr_in6 *s = (struct sockaddr_in6 *)&client_internet_address;
         addr = &(s->sin6_addr);
     }
+    // Convert binary IP to human-readable ip adress.
     inet_ntop(client_internet_address.ss_family, addr, ip_address, sizeof ip_address);
 
     // Log IP address
@@ -169,48 +173,66 @@ int connection(int internet_socket) {
         close(client_socket);
         exit(4);
     }
+    fprintf(log_file, "------------------------\n");
     fprintf(log_file, "Connection from %s\n", ip_address);
+    fprintf(log_file, "------------------------\n");
     fclose(log_file);
 
     return client_socket;
 }
 
 
-void execution( int internet_socket )
+void execution(int internet_socket)
 {
-	//Step 3.1
-	int number_of_bytes_received = 0;
-	char buffer[1000];
-	number_of_bytes_received = recv( internet_socket, buffer, ( sizeof buffer ) - 1, 0 );
-	if( number_of_bytes_received == -1 )
-	{
-		perror( "recv" );
-	}
-	else
-	{
-		buffer[number_of_bytes_received] = '\0';
-		printf( "Received : %s\n", buffer );
-	}
+    // Step 3.1
+    printf("Test, Test.... Does this work?! This is the execution function\n");
+    int number_of_bytes_received = 0;
+    char buffer[1000];
+    number_of_bytes_received = recv(internet_socket, buffer, (sizeof buffer) - 1, 0);
+    if (number_of_bytes_received == -1)
+    {
+        perror("recv");
+    }
+    else
+    {
+        buffer[number_of_bytes_received] = '\0';
+        printf("Received: %s\n", buffer);
+    }
 
-	//Step 3.2
-	int number_of_bytes_send = 0;
-	number_of_bytes_send = send( internet_socket, "Hello TCP world!", 16, 0 );
-	if( number_of_bytes_send == -1 )
-	{
-		perror( "send" );
-	}
+    // Step 3.2
+    int number_of_bytes_send = 0;
+    number_of_bytes_send = send(internet_socket, "GET /json/24.48.0.1 HTTP/1.0\r\nHost: ip-api.com\r\n\r\n", 52, 0);
+    if (number_of_bytes_send == -1)
+    {
+        perror("send");
+    }
+
+    // Receive and save the response in log.txt
+    FILE *log_file = fopen("log.txt", "a");
+    if (log_file == NULL)
+    {
+        perror("fopen");
+        close(internet_socket);
+        exit(4);
+    }
+
+    fprintf(log_file, "------------------------\n");
+    fprintf(log_file, "Response from GET request:\n%s\n", buffer);
+    fprintf(log_file, "------------------------\n");
+
+    fclose(log_file);
 }
 
 void cleanup( int internet_socket, int client_internet_socket )
 {
-	//Step 4.2
-	int shutdown_return = shutdown( client_internet_socket, SD_RECEIVE );
-	if( shutdown_return == -1 )
-	{
-		perror( "shutdown" );
-	}
+    //Step 4.2
+    int shutdown_return = shutdown( client_internet_socket, SD_RECEIVE );
+    if( shutdown_return == -1 )
+    {
+        perror( "shutdown" );
+    }
 
-	//Step 4.1
-	close( client_internet_socket );
-	close( internet_socket );
+    //Step 4.1
+    close( client_internet_socket );
+    close( internet_socket );
 }
