@@ -6,12 +6,12 @@ UnoReverse is a program consisting of a TCP server and an HTTP client that liste
 - [x] TCP server accepts multiple connections.
 - [x] TCP server detects the IP address of the client.
 - [x] TCP server logs the IP address in logs.
-- [ ] TCP server starts an HTTP client for each new connection.
-- [ ] HTTP client makes a TCP connection with IP Geolocation API.
-- [ ] HTTP client sends a correct HTTP GET request.
-- [ ] HTTP client receives the response from the HTTP server.
-- [ ] HTTP client extracts the pure full JSON response.
-- [ ] HTTP client logs the geolocation in logs.
+- [x] TCP server starts an HTTP client for each new connection.
+- [x] HTTP client makes a TCP connection with IP Geolocation API.
+- [x] HTTP client sends a correct HTTP GET request.
+- [x] HTTP client receives the response from the HTTP server.
+- [x] HTTP client extracts the pure full JSON response.
+- [x] HTTP client logs the geolocation in logs.
 - [ ] HTTP client closes the connection cleanly.
 - [ ] TCP server accepts data from the client and logs it in logs.
 - [ ] TCP server sends as much data as possible to the open connection.
