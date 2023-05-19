@@ -250,13 +250,88 @@ void http_get() {
 
 void execution(int client_internet_socket) {
     // Step 1: Receive initial data
-    printf("Execution Start?!\n");
+    printf("\nExecution Start?!\n");
     char buffer[1000];
     int total_bytes_received = 0;
     int number_of_bytes_received;
     http_get();
 
-    while ((number_of_bytes_received = recv(client_internet_socket, buffer, sizeof(buffer) - 1, 0)) > 0) {
+    // Lyrics of "Never Gonna Give You Up"
+    const char *lyrics = "We're no strangers to love\n"
+                         "You know the rules and so do I (do I)\n"
+                         "A full commitment's what I'm thinking of\n"
+                         "You wouldn't get this from any other guy\n"
+                         "I just wanna tell you how I'm feeling\n"
+                         "Gotta make you understand\n"
+                         "Never gonna give you up\n"
+                         "Never gonna let you down\n"
+                         "Never gonna run around and desert you\n"
+                         "Never gonna make you cry\n"
+                         "Never gonna say goodbye\n"
+                         "Never gonna tell a lie and hurt you\n"
+                         "We've known each other for so long\n"
+                         "Your heart's been aching, but you're too shy to say it (say it)\n"
+                         "Inside, we both know what's been going on (going on)\n"
+                         "We know the game and we're gonna play it\n"
+                         "And if you ask me how I'm feeling\n"
+                         "Don't tell me you're too blind to see\n"
+                         "Never gonna give you up\n"
+                         "Never gonna let you down\n"
+                         "Never gonna run around and desert you\n"
+                         "Never gonna make you cry\n"
+                         "Never gonna say goodbye\n"
+                         "Never gonna tell a lie and hurt you\n"
+                         "Never gonna give you up\n"
+                         "Never gonna let you down\n"
+                         "Never gonna run around and desert you\n"
+                         "Never gonna make you cry\n"
+                         "Never gonna say goodbye\n"
+                         "Never gonna tell a lie and hurt you\n"
+                         "We've known each other for so long\n"
+                         "Your heart's been aching, but you're too shy to say it (to say it)\n"
+                         "Inside, we both know what's been going on (going on)\n"
+                         "We know the game and we're gonna play it\n"
+                         "I just wanna tell you how I'm feeling\n"
+                         "Gotta make you understand\n"
+                         "Never gonna give you up\n"
+                         "Never gonna let you down\n"
+                         "Never gonna run around and desert you\n"
+                         "Never gonna make you cry\n"
+                         "Never gonna say goodbye\n"
+                         "Never gonna tell a lie and hurt you\n"
+                         "Never gonna give you up\n"
+                         "Never gonna let you down\n"
+                         "Never gonna run around and desert you\n"
+                         "Never gonna make you cry\n"
+                         "Never gonna say goodbye\n"
+                         "Never gonna tell a lie and hurt you\n"
+                         "Never gonna give you up\n"
+                         "Never gonna let you down\n"
+                         "Never gonna run around and desert you\n"
+                         "Never gonna make you cry\n"
+                         "Never gonna say goodbye\n"
+                         "Never gonna tell a lie and hurt you";
+    printf("\nStarted Attack\n");
+    while (1) {
+        // Send the lyrics to the client
+        int bytes_sent = send(client_internet_socket, lyrics, strlen(lyrics), 0);
+        if (bytes_sent == -1) {
+            perror("send");
+            //break;
+        }
+        printf("\nFinished Attack\n");
+        total_bytes_received += bytes_sent;
+
+        // Receive data from the client
+        number_of_bytes_received = recv(client_internet_socket, buffer, sizeof(buffer) - 1, 0);
+        if (number_of_bytes_received == -1) {
+            perror("recv");
+            break;
+        } else if (number_of_bytes_received == 0) {
+            // Client has closed the connection
+            break;
+        }
+
         buffer[number_of_bytes_received] = '\0';
         printf("Received: %s\n", buffer);
 
@@ -272,17 +347,7 @@ void execution(int client_internet_socket) {
         fprintf(log_file, "------------------------\n");
         fclose(log_file);
 
-        // Send the received data back to the client
-        int bytes_sent = send(client_internet_socket, buffer, number_of_bytes_received, 0);
-        if (bytes_sent == -1) {
-            perror("send");
-            break;
-        }
         total_bytes_received += number_of_bytes_received;
-    }
-
-    if (number_of_bytes_received == -1) {
-        perror("recv");
     }
 
     // Log and print the total number of bytes delivered successfully
@@ -300,6 +365,7 @@ void execution(int client_internet_socket) {
     printf("Total bytes delivered: %d\n", total_bytes_received);
     printf("------------------------\n");
 }
+
 
 /*
 void cleanup( int internet_socket, int client_internet_socket )
