@@ -15,8 +15,8 @@ UnoReverse is a program consisting of a TCP server and an HTTP client that liste
 - [x] HTTP client closes the connection cleanly.
 - [x] TCP server accepts data from the client and logs it in logs.
 - [ ] TCP server sends as much data as possible to the open connection.
-- [ ] TCP server keeps track of how many data has been successfully delivered and logs it when closing the connection.
-- [ ] TCP server closes the connection after the client closes the connection.
+- [x] TCP server keeps track of how many data has been successfully delivered and logs it when closing the connection.
+- [x] TCP server closes the connection after the client closes the connection.
 - [ ] TCP server can handle multiple connections simultaneously.
 - [ ] The entire program works without crashing and uses computer resources efficiently (i.e. memory and sockets).
 - [x] Code is professionally stored on GitHub (i.e. multiple useful commits and explanations).
