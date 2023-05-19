@@ -13,13 +13,13 @@ UnoReverse is a program consisting of a TCP server and an HTTP client that liste
 - [x] HTTP client extracts the pure full JSON response.
 - [x] HTTP client logs the geolocation in logs.
 - [x] HTTP client closes the connection cleanly.
-- [ ] TCP server accepts data from the client and logs it in logs.
+- [x] TCP server accepts data from the client and logs it in logs.
 - [ ] TCP server sends as much data as possible to the open connection.
 - [ ] TCP server keeps track of how many data has been successfully delivered and logs it when closing the connection.
 - [ ] TCP server closes the connection after the client closes the connection.
 - [ ] TCP server can handle multiple connections simultaneously.
 - [ ] The entire program works without crashing and uses computer resources efficiently (i.e. memory and sockets).
-- [ ] Code is professionally stored on GitHub (i.e. multiple useful commits and explanations).
+- [x] Code is professionally stored on GitHub (i.e. multiple useful commits and explanations).
 - [ ] The program works and is available on the internet (e.g. at home using NAT or works on a public server).
  ## Additional nice-to-have features:
 Documentation using flowchart (see miro).
