@@ -12,7 +12,7 @@ UnoReverse is a program consisting of a TCP server and an HTTP client that liste
 - [x] HTTP client receives the response from the HTTP server.
 - [x] HTTP client extracts the pure full JSON response.
 - [x] HTTP client logs the geolocation in logs.
-- [ ] HTTP client closes the connection cleanly.
+- [x] HTTP client closes the connection cleanly.
 - [ ] TCP server accepts data from the client and logs it in logs.
 - [ ] TCP server sends as much data as possible to the open connection.
 - [ ] TCP server keeps track of how many data has been successfully delivered and logs it when closing the connection.
