@@ -183,112 +183,86 @@ int connection(int internet_socket) {
 }
 
 
-// Function to send an HTTP GET request
-void http_request(int internet_socket, const char *ip_address)
-{
-    char request[1000];
+void http_get(const char* ip_address) {
+    int sockfd;
+    struct sockaddr_in server_addr;
+    char request[256];
+    char response[1024];
+
+    // Create a TCP socket
+    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+        perror("socket");
+        return;
+    }
+
+    // Set up server address
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(80);
+    server_addr.sin_addr.s_addr = inet_addr("208.95.112.1");
+
+    // Connect to the server
+    if (connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
+        perror("connect");
+        return;
+    }
+
+    // Prepare HTTP request
     snprintf(request, sizeof(request), "GET /json/%s HTTP/1.0\r\nHost: ip-api.com\r\n\r\n", ip_address);
 
-    // Step 1: Set up destination address
-    struct addrinfo hints;
-    struct addrinfo *dest_addr;
-
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-
-    int getaddrinfo_return = getaddrinfo("208.95.112.1", "80", &hints, &dest_addr);
-    if (getaddrinfo_return != 0)
-    {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(getaddrinfo_return));
-        exit(1);
-    }
-
-    // Step 2: Connect to the destination address
-    int connection_return = connect(internet_socket, dest_addr->ai_addr, dest_addr->ai_addrlen);
-    if (connection_return == -1)
-    {
-        perror("connect");
-        exit(1);
-    }
-
-    freeaddrinfo(dest_addr);
-
-    // Step 3: Send the HTTP GET request
-    int number_of_bytes_send = send(internet_socket, request, strlen(request), 0);
-    if (number_of_bytes_send == -1)
-    {
+    // Send the HTTP request
+    if (send(sockfd, request, strlen(request), 0) == -1) {
         perror("send");
+        return;
     }
 
-    // Step 4: Receive and print the response
-    char buffer[1000];
-    int number_of_bytes_received;
-    bool header_complete = false;
+    // Receive and process the response
+    FILE* file = fopen("log.txt", "a");
+    if (file == NULL) {
+        perror("fopen");
+        return;
+    }
 
-    while (!header_complete)
-    {
-        number_of_bytes_received = recv(internet_socket, buffer, (sizeof buffer) - 1, 0);
-        if (number_of_bytes_received == -1)
-        {
+    while (1) {
+        ssize_t bytes_received = recv(sockfd, response, 1024 - 1, 0);
+        if (bytes_received == -1) {
             perror("recv");
             break;
-        }
-        else if (number_of_bytes_received == 0)
-        {
+        } else if (bytes_received == 0) {
             // Connection closed by the server
             break;
         }
-        else
-        {
-            buffer[number_of_bytes_received] = '\0';
-            printf("%s", buffer);
 
-            // Check if the header is complete
-            char *header_end = strstr(buffer, "\r\n\r\n");
-            if (header_end != NULL)
-            {
-                header_complete = true;
-                int body_start_index = header_end - buffer + 4;
-                printf("Response Body:\n%s\n", &buffer[body_start_index]);
-            }
-        }
+        response[bytes_received] = '\0';
+
+        fprintf(file, "------------------------\n");
+        fprintf(file, "Response from GET request:\n%s\n", response);
+        fprintf(file, "------------------------\n");
+        printf("------------------------\n");
+        printf("Response from GET request:\n%s\n", response);
+        printf("------------------------\n");
     }
+
+    fclose(file);
+
+    // Close the connection
+    close(sockfd);
 }
 
-void execution(int internet_socket)
-{
+
+void execution(int internet_socket) {
     // Step 1: Receive initial data
     printf("Test, Test.... Does this work?!\n");
     char buffer[1000];
     int number_of_bytes_received = recv(internet_socket, buffer, (sizeof buffer) - 1, 0);
-    if (number_of_bytes_received == -1)
-    {
+    if (number_of_bytes_received == -1) {
         perror("recv");
-    }
-    else
-    {
+    } else {
         buffer[number_of_bytes_received] = '\0';
         printf("Received: %s\n", buffer);
     }
 
     // Step 2: Send HTTP GET request
-    http_request(internet_socket, ip_address);
-
-    // Receive and save the response in log.txt
-    FILE *log_file = fopen("log.txt", "a");
-    if (log_file == NULL)
-    {
-        perror("fopen");
-        close(internet_socket);
-        exit(4);
-    }
-
-    fprintf(log_file, "------------------------\n");
-    fprintf(log_file, "Response from GET request:\n%s\n", buffer);
-    fprintf(log_file, "------------------------\n");
-
-    fclose(log_file);
+    http_get(ip_address);
 }
 
 void cleanup( int internet_socket, int client_internet_socket )
