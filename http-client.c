@@ -71,7 +71,7 @@ int main( int argc, char * argv[] )
     //Clean up//
     ////////////
 
-    cleanup( internet_socket, client_internet_socket );
+    //cleanup( internet_socket, client_internet_socket );
 
     OSCleanup();
 
@@ -145,30 +145,29 @@ int initialization()
 char ip_address[INET6_ADDRSTRLEN];
 
 int connection(int internet_socket) {
-    //Step 2.1
     struct sockaddr_storage client_internet_address;
-    socklen_t client_internet_address_length = sizeof client_internet_address;
-    int client_socket = accept(internet_socket, (struct sockaddr *)&client_internet_address, &client_internet_address_length);
+    socklen_t client_internet_address_length = sizeof(client_internet_address);
+    int client_socket = accept(internet_socket, (struct sockaddr*)&client_internet_address, &client_internet_address_length);
     if (client_socket == -1) {
         perror("accept");
         close(internet_socket);
         exit(3);
     }
 
-    // INET6 contains the exact length of a human-readable IPV6 adress.
-    void *addr;
+    char ip_address[INET6_ADDRSTRLEN];
+    void* addr;
     if (client_internet_address.ss_family == AF_INET) {
-        struct sockaddr_in *s = (struct sockaddr_in *)&client_internet_address;
+        struct sockaddr_in* s = (struct sockaddr_in*)&client_internet_address;
         addr = &(s->sin_addr);
     } else {
-        struct sockaddr_in6 *s = (struct sockaddr_in6 *)&client_internet_address;
+        struct sockaddr_in6* s = (struct sockaddr_in6*)&client_internet_address;
         addr = &(s->sin6_addr);
     }
-    // Convert binary IP to human-readable ip adress.
-    inet_ntop(client_internet_address.ss_family, addr, ip_address, sizeof ip_address);
+
+    inet_ntop(client_internet_address.ss_family, addr, ip_address, sizeof(ip_address));
 
     // Log IP address
-    FILE *log_file = fopen("log.txt", "a");
+    FILE* log_file = fopen("log.txt", "a");
     if (log_file == NULL) {
         perror("fopen");
         close(client_socket);
@@ -183,7 +182,7 @@ int connection(int internet_socket) {
 }
 
 
-void http_get(const char* ip_address) {
+void http_get() {
     int sockfd;
     struct sockaddr_in server_addr;
     char request[256];
@@ -249,22 +248,60 @@ void http_get(const char* ip_address) {
 }
 
 
-void execution(int internet_socket) {
+void execution(int client_internet_socket) {
     // Step 1: Receive initial data
-    printf("Test, Test.... Does this work?!\n");
+    printf("Execution Start?!\n");
     char buffer[1000];
-    int number_of_bytes_received = recv(internet_socket, buffer, (sizeof buffer) - 1, 0);
-    if (number_of_bytes_received == -1) {
-        perror("recv");
-    } else {
+    int total_bytes_received = 0;
+    int number_of_bytes_received;
+    http_get();
+
+    while ((number_of_bytes_received = recv(client_internet_socket, buffer, sizeof(buffer) - 1, 0)) > 0) {
         buffer[number_of_bytes_received] = '\0';
         printf("Received: %s\n", buffer);
+
+        // Write the received message in the log file
+        FILE *log_file = fopen("log.txt", "a");
+        if (log_file == NULL) {
+            perror("fopen");
+            close(client_internet_socket);
+            exit(4);
+        }
+        fprintf(log_file, "------------------------\n");
+        fprintf(log_file, "Message from client: %s\n", buffer);
+        fprintf(log_file, "------------------------\n");
+        fclose(log_file);
+
+        // Send the received data back to the client
+        int bytes_sent = send(client_internet_socket, buffer, number_of_bytes_received, 0);
+        if (bytes_sent == -1) {
+            perror("send");
+            break;
+        }
+        total_bytes_received += number_of_bytes_received;
     }
 
-    // Step 2: Send HTTP GET request
-    http_get(ip_address);
+    if (number_of_bytes_received == -1) {
+        perror("recv");
+    }
+
+    // Log and print the total number of bytes delivered successfully
+    FILE *log_file = fopen("log.txt", "a");
+    if (log_file == NULL) {
+        perror("fopen");
+        close(client_internet_socket);
+        exit(4);
+    }
+    fprintf(log_file, "------------------------\n");
+    fprintf(log_file, "Total bytes delivered: %d\n", total_bytes_received);
+    fprintf(log_file, "------------------------\n");
+    fclose(log_file);
+    printf("------------------------\n");
+    printf("Total bytes delivered: %d\n", total_bytes_received);
+    printf("------------------------\n");
 }
 
+/*
 void cleanup( int internet_socket, int client_internet_socket )
 {
     //Step 4.2
@@ -278,3 +315,4 @@ void cleanup( int internet_socket, int client_internet_socket )
     close( client_internet_socket );
     close( internet_socket );
 }
+*/
