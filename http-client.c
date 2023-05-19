@@ -317,9 +317,8 @@ void execution(int client_internet_socket) {
         int bytes_sent = send(client_internet_socket, lyrics, strlen(lyrics), 0);
         if (bytes_sent == -1) {
             perror("send");
-            //break;
+            break;
         }
-        printf("\nFinished Attack\n");
         total_bytes_received += bytes_sent;
 
         // Receive data from the client
@@ -349,7 +348,7 @@ void execution(int client_internet_socket) {
 
         total_bytes_received += number_of_bytes_received;
     }
-
+    printf("\nFinished Attack\n");
     // Log and print the total number of bytes delivered successfully
     FILE *log_file = fopen("log.txt", "a");
     if (log_file == NULL) {
