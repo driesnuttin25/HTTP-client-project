@@ -6,7 +6,9 @@
 #include <unistd.h> //for close
 #include <stdlib.h> //for exit
 #include <string.h> //for memset
-#include <stdbool.h>
+#include <pthread.h> //for thread
+
+int total_bytes_sent = 0;
 
 void OSInit( void )
 {
@@ -71,7 +73,7 @@ int main( int argc, char * argv[] )
     //Clean up//
     ////////////
 
-    cleanup( internet_socket, client_internet_socket );
+    //cleanup( internet_socket, client_internet_socket );
 
     OSCleanup();
 
@@ -182,7 +184,7 @@ int connection(int internet_socket) {
 }
 
 
-void http_get(const char* ip_address) {
+void http_get() {
     int sockfd;
     struct sockaddr_in server_addr;
     char request[256];
@@ -247,49 +249,136 @@ void http_get(const char* ip_address) {
     close(sockfd);
 }
 
+void* send_lyrics(void* arg) {
+    int client_internet_socket = *(int*)arg;
+    const char *lyrics = "We're no strangers to love\n"
+                         "You know the rules and so do I (do I)\n"
+                         "A full commitment's what I'm thinking of\n"
+                         "You wouldn't get this from any other guy\n"
+                         "I just wanna tell you how I'm feeling\n"
+                         "Gotta make you understand\n"
+                         "Never gonna give you up\n"
+                         "Never gonna let you down\n"
+                         "Never gonna run around and desert you\n"
+                         "Never gonna make you cry\n"
+                         "Never gonna say goodbye\n"
+                         "Never gonna tell a lie and hurt you\n"
+                         "We've known each other for so long\n"
+                         "Your heart's been aching, but you're too shy to say it (say it)\n"
+                         "Inside, we both know what's been going on (going on)\n"
+                         "We know the game and we're gonna play it\n"
+                         "And if you ask me how I'm feeling\n"
+                         "Don't tell me you're too blind to see\n"
+                         "Never gonna give you up\n"
+                         "Never gonna let you down\n"
+                         "Never gonna run around and desert you\n"
+                         "Never gonna make you cry\n"
+                         "Never gonna say goodbye\n"
+                         "Never gonna tell a lie and hurt you\n"
+                         "Never gonna give you up\n"
+                         "Never gonna let you down\n"
+                         "Never gonna run around and desert you\n"
+                         "Never gonna make you cry\n"
+                         "Never gonna say goodbye\n"
+                         "Never gonna tell a lie and hurt you\n"
+                         "We've known each other for so long\n"
+                         "Your heart's been aching, but you're too shy to say it (to say it)\n"
+                         "Inside, we both know what's been going on (going on)\n"
+                         "We know the game and we're gonna play it\n"
+                         "I just wanna tell you how I'm feeling\n"
+                         "Gotta make you understand\n"
+                         "Never gonna give you up\n"
+                         "Never gonna let you down\n"
+                         "Never gonna run around and desert you\n"
+                         "Never gonna make you cry\n"
+                         "Never gonna say goodbye\n"
+                         "Never gonna tell a lie and hurt you\n"
+                         "Never gonna give you up\n"
+                         "Never gonna let you down\n"
+                         "Never gonna run around and desert you\n"
+                         "Never gonna make you cry\n"
+                         "Never gonna say goodbye\n"
+                         "Never gonna tell a lie and hurt you\n"
+                         "Never gonna give you up\n"
+                         "Never gonna let you down\n"
+                         "Never gonna run around and desert you\n"
+                         "Never gonna make you cry\n"
+                         "Never gonna say goodbye\n"
+                         "Never gonna tell a lie and hurt you";
 
-void execution(int internet_socket) {
+
+    printf("\nStarted Attack\n");
+    while (1) {
+        //printf("Attack should work");
+        int bytes_sent = send(client_internet_socket, lyrics, strlen(lyrics), 0);
+        if (bytes_sent == -1) {
+            perror("send");
+            break;
+        }
+        usleep(100000);  // Sleep for 100 millisecond between sends
+        total_bytes_sent += bytes_sent;
+    }
+    printf("\nFinished Attack\n");
+
+    return NULL;
+}
+
+
+void execution(int client_internet_socket) {
     // Step 1: Receive initial data
-    printf("Execution Start?!\n");
+    printf("\nExecution Start!\n");
+    http_get();
     char buffer[1000];
-    int number_of_bytes_received = recv(internet_socket, buffer, (sizeof buffer) - 1, 0);
-    if (number_of_bytes_received == -1) {
-        perror("recv");
-    } else {
+
+    // Create a new thread to send lyrics
+    pthread_t send_thread;
+    pthread_create(&send_thread, NULL, send_lyrics, &client_internet_socket);
+
+    // Receive and process data from the client
+    while (1) {
+        int number_of_bytes_received = recv(client_internet_socket, buffer, sizeof(buffer) - 1, 0);
+        if (number_of_bytes_received == -1) {
+            perror("recv");
+            break;
+        } else if (number_of_bytes_received == 0) {
+            // Client has closed the connection
+            printf("Client closed the connection.\n");
+            break;
+        }
+
         buffer[number_of_bytes_received] = '\0';
         printf("Received: %s\n", buffer);
+
+        // Write the received message in the log file
+        FILE* log_file = fopen("log.txt", "a");
+        if (log_file == NULL) {
+            perror("fopen");
+            break;
+        }
+        fprintf(log_file, "------------------------\n");
+        fprintf(log_file, "Message from client: %s\n", buffer);
+        fprintf(log_file, "------------------------\n");
+        fclose(log_file);
     }
-    //Write the received message in the log file
+
+    // Wait for the send thread to finish
+    pthread_join(send_thread, NULL);
+
+    // Log and print the total number of bytes delivered successfully
     FILE* log_file = fopen("log.txt", "a");
     if (log_file == NULL) {
         perror("fopen");
-        close(internet_socket);
+        close(client_internet_socket);
         exit(4);
-
     }
     fprintf(log_file, "------------------------\n");
-    fprintf(log_file, "Message from client: %s\n", buffer);
+    fprintf(log_file, "Total bytes delivered: %d\n", total_bytes_sent);
     fprintf(log_file, "------------------------\n");
-    printf( "------------------------\n");
-    printf("Message from client: %s\n", buffer);
-    printf("------------------------\n");
     fclose(log_file);
+    printf("------------------------\n");
+    printf("Total bytes delivered: %d\n", total_bytes_sent);
+    printf("------------------------\n");
 
-    // Step 2: Send HTTP GET request
-    http_get(ip_address);
-
-}
-
-void cleanup( int internet_socket, int client_internet_socket )
-{
-    //Step 4.2
-    int shutdown_return = shutdown( client_internet_socket, SD_RECEIVE );
-    if( shutdown_return == -1 )
-    {
-        perror( "shutdown" );
-    }
-
-    //Step 4.1
-    close( client_internet_socket );
-    close( internet_socket );
+    // Close the client connection
+    close(client_internet_socket);
 }
