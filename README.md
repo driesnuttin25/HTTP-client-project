@@ -28,8 +28,7 @@ Use of pthread.
 IPs are stored in a lookup table (e.g. linked-list) to log repeated attacks.
 
 ## Flowchart
-![Flowchart Template (1)](https://github.com/driesnuttin25/HTTP-client-project/assets/114076101/6cc047f8-e321-4797-928d-d81843e62d41)
-
+![Flowchart Template (2)](https://github.com/driesnuttin25/HTTP-client-project/assets/114076101/543f559e-6383-468b-b2fb-f764822a0e18)
 
 ## How to use
 To use UnoReverse, follow these steps:
