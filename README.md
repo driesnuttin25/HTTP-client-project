@@ -1,5 +1,5 @@
 # UnoReverse - TCP Server and HTTP Client
-UnoReverse is a program consisting of a TCP server and an HTTP client that listens on port 22 for new connections and detects the IP address of the attacker (i.e. bot-net). It logs the login attempt in a log file along with the received data, network statistics, and the geo-location using IP Geolocation API. For the latter, the program uses an HTTP client to communicate with the API and store the data returned in the log. Furthermore, the server will perform a reverse attack by sending back a large amount of data.
+UnoReverse is a program consisting of a TCP server and an HTTP client that listens on port 22 for new connections and detects the IP address of the attacker (i.e. bot-net). It logs the login attempt in a log file along with the received data, network statistics, and the geo-location using IP Geolocation API. For the latter, the program uses an HTTP client to communicate with the API and store the data returned in the log. Furthermore, the server will perform a reverse attack by sending back a large amount of data to try and overload the application on the client. This is done as an attempt to Ddos the client since they have no  right looking on your port 22.
 
 ## Checklist
 - [x] TCP server listens on port 22.
@@ -21,15 +21,21 @@ UnoReverse is a program consisting of a TCP server and an HTTP client that liste
 - [x] The entire program works without crashing and uses computer resources efficiently (i.e. memory and sockets).
 - [x] Code is professionally stored on GitHub (i.e. multiple useful commits and explanations).
 - [ ] The program works and is available on the internet (e.g. at home using NAT or works on a public server).
+
  ## Additional nice-to-have features:
 Documentation using flowchart (see miro).
 Use of pthread.
 IPs are stored in a lookup table (e.g. linked-list) to log repeated attacks.
+
+## Flowchart
+![Flowchart Template](https://github.com/driesnuttin25/HTTP-client-project/assets/114076101/b14d76ba-7f9c-4957-98b0-1bee19f8daff)
+
 ## How to use
 To use UnoReverse, follow these steps:
 - Clone this repository to your local machine.
-- Compile the program using your preferred compiler.
-- Run the program using the command line, specifying the port number to listen on (defaults to port 22).
+- Compile the program using your preferred compiler (make sure to include ws2_32 to your preferred compiler, I personally used Msys2 UCRT64)
+- Run the program on your local machine or a ssh server listening on port 22
+- For self check run packet sender on your local ip (::1 or 127.0.0.1)
 
 ## Credits
-This project was created by Dries Nuttin.
+This project was created by Dries Nuttin student at PXL elektronica-ict 1e jaar. (Basically I'm giving myself credit, and I deserve it cause this project caused me way too many headaches)
