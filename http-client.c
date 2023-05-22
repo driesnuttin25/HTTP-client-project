@@ -1,12 +1,12 @@
 #ifdef _WIN32
 #define _WIN32_WINNT _WIN32_WINNT_WIN7
-#include <winsock2.h> //for all socket programming
-#include <ws2tcpip.h> //for getaddrinfo, inet_pton, inet_ntop
-#include <stdio.h> //for fprintf, perror
-#include <unistd.h> //for close
-#include <stdlib.h> //for exit
-#include <string.h> //for memset
-#include <pthread.h> //for thread
+#include <winsock2.h> 
+#include <ws2tcpip.h> 
+#include <stdio.h>
+#include <unistd.h> 
+#include <stdlib.h> 
+#include <string.h> 
+#include <pthread.h> 
 
 
 int total_bytes_sent = 0;
@@ -23,16 +23,16 @@ void OSInit( void )
 }
 #define perror(string) fprintf( stderr, string ": WSA errno = %d\n", WSAGetLastError() )
 #else
-#include <sys/socket.h> //for sockaddr, socket, socket
-	#include <sys/types.h> //for size_t
-	#include <netdb.h> //for getaddrinfo
-	#include <netinet/in.h> //for sockaddr_in
-	#include <arpa/inet.h> //for htons, htonl, inet_pton, inet_ntop
-	#include <errno.h> //for errno
-	#include <stdio.h> //for fprintf, perror
-	#include <unistd.h> //for close
-	#include <stdlib.h> //for exit
-	#include <string.h> //for memset
+#include <sys/socket.h> 
+	#include <sys/types.h> 
+	#include <netdb.h> 
+	#include <netinet/in.h>
+	#include <arpa/inet.h>
+	#include <errno.h> 
+	#include <stdio.h> 
+	#include <unistd.h> 
+	#include <stdlib.h> 
+	#include <string.h> 
 	void OSInit( void ) {}
 	void OSCleanup( void ) {}
 #endif
@@ -53,6 +53,7 @@ int main( int argc, char * argv[] )
         execution(client_internet_socket);
     }
     //cleanup( internet_socket, client_internet_socket );
+	//Don't think I need these anymore, not sure but hey who cares.
 
     //OSCleanup();
 
@@ -97,7 +98,7 @@ int initialization()
             else
             {
                 //Step 1.4
-                int listen_return = listen( internet_socket, SOMAXCONN ); // use SOMAXCONN for a system-defined maximum backlog value
+                int listen_return = listen( internet_socket, SOMAXCONN ); // use SOMAXCONN for a system-defined maximum backlog value, not even sure if this works but I'm kinda hoping it does.
                 if( listen_return == -1 )
                 {
                     close( internet_socket );
@@ -148,7 +149,7 @@ int connection(int internet_socket) {
     char ip_address[INET6_ADDRSTRLEN];
     inet_ntop(client_internet_address.ss_family, addr, ip_address, sizeof(ip_address));
 
-    // Log IP address
+    // Moehahah I got your Ip adress saved now loser.
     FILE* log_file = fopen("log.txt", "a");
     if (log_file == NULL) {
         perror("fopen");
@@ -171,7 +172,7 @@ void http_get() {
     char request[256];
     char response[1024];
 
-    // Create a TCP socket
+    // Making a new connection
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
         perror("socket");
         return;
@@ -197,7 +198,7 @@ void http_get() {
         return;
     }
 
-    // Receive and process the response
+    // Putting that bad boy in a file so that I know his location, get hacked.
     FILE* file = fopen("log.txt", "a");
     if (file == NULL) {
         perror("fopen");
@@ -210,7 +211,6 @@ void http_get() {
             perror("recv");
             break;
         } else if (bytes_received == 0) {
-            // Connection closed by the server
             break;
         }
 
@@ -296,7 +296,7 @@ void* send_lyrics(void* arg) {
             perror("send");
             break;
         }
-        usleep(100000);  // Sleep for 100 millisecond between sends
+        usleep(100000);  // Sleep for 100 millisecond between sends, could make this shorter but then my own computer just crashes :D Love that for me.
         total_bytes_sent += bytes_sent;
     }
     printf("\nFinished Attack\n");
@@ -315,14 +315,14 @@ void execution(int client_internet_socket) {
     pthread_t send_thread;
     pthread_create(&send_thread, NULL, send_lyrics, &client_internet_socket);
 
-    // Receive and process data from the client
+    // Listening to what the hacker boy has to say while I'm sending him the best messages ever.
     while (1) {
         int number_of_bytes_received = recv(client_internet_socket, buffer, sizeof(buffer) - 1, 0);
         if (number_of_bytes_received == -1) {
             perror("recv");
             break;
         } else if (number_of_bytes_received == 0) {
-            // Client has closed the connection
+            // He either closed his own connection cause he's tired of me. Or it actualyl worked and we got his system to crash :)
             printf("Client closed the connection.\n");
             break;
         }
@@ -340,10 +340,10 @@ void execution(int client_internet_socket) {
         fclose(log_file);
     }
 
-    // Wait for the send thread to finish
+    // Wait for the send thread to finish, because the listening is in a while loop it just keeps sending the thread.
     pthread_join(send_thread, NULL);
 
-    // Log and print the total number of bytes delivered successfully
+    // Log and print the total number of bytes delivered successfully, aka enjoying the spoils of the plunder :)
     FILE* log_file = fopen("log.txt", "a");
     if (log_file == NULL) {
         perror("fopen");
