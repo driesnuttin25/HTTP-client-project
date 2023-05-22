@@ -23,9 +23,9 @@ UnoReverse is a program consisting of a TCP server and an HTTP client that liste
 - [ ] The program works and is available on the internet (e.g. at home using NAT or works on a public server).
 
  ## Additional nice-to-have features:
-Documentation using flowchart (see miro).
-Use of pthread.
-IPs are stored in a lookup table (e.g. linked-list) to log repeated attacks.
+- [x] Documentation using flowchart (see miro).
+- [x] Use of pthread.
+- [] IPs are stored in a lookup table (e.g. linked-list) to log repeated attacks.
 
 ## Flowchart
 ![Flowchart Template (2)](https://github.com/driesnuttin25/HTTP-client-project/assets/114076101/543f559e-6383-468b-b2fb-f764822a0e18)
