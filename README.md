@@ -45,4 +45,4 @@ gcc 'project_name.c' -l ws2_32 -o 'project_name.exe'
 - For self check run packet sender on your local ip (::1 or 127.0.0.1).
 
 ## Credits
-This project was created by Dries Nuttin student at PXL elektronica-ict 1e jaar. (Basically I'm giving myself credit, and I deserve it cause this project caused me way too many headaches)
+This project was created by Dries Nuttin student at PXL - elektronica-ict 1st year. (Basically I'm giving myself credit, and I deserve it cause this project caused me way too many headaches)
