@@ -33,9 +33,16 @@ IPs are stored in a lookup table (e.g. linked-list) to log repeated attacks.
 ## How to use
 To use UnoReverse, follow these steps:
 - Clone this repository to your local machine.
-- Compile the program using your preferred compiler (make sure to include ws2_32 to your preferred compiler, I personally used Msys2 UCRT64)
-- Run the program on your local machine or a ssh server listening on port 22
-- For self check run packet sender on your local ip (::1 or 127.0.0.1)
+- Make a log.txt file in the same directory.
+- Compile the program using your preferred compiler (make sure to include ws2_32 to your preferred compiler, I personally used Msys2 UCRT64).
+```bash
+gcc 'project_name.c' -l ws2_32 -o 'project_name.exe'
+
+./'projectname.exe'
+
+```
+- Run the program on your local machine or a ssh server listening on port 22.
+- For self check run packet sender on your local ip (::1 or 127.0.0.1).
 
 ## Credits
 This project was created by Dries Nuttin student at PXL elektronica-ict 1e jaar. (Basically I'm giving myself credit, and I deserve it cause this project caused me way too many headaches)
